@@ -45,6 +45,7 @@ MODULE  NEGF_Module
     REAL(8) :: disorderStrength   !Strength of nonmagnetic disorder added to on-site block
     REAL(8) :: magneticRingWidth
     REAL(8) :: magneticDisorderStrength
+    INTEGER(4) :: isHollowRing
 
     !density matrix
     REAL(8), DIMENSION(:,:,:), ALLOCATABLE    :: RhoN, RhoP          !rhon = integral of Gn(E), rhop = integral of Gp(E)  (from eMin to eMax)

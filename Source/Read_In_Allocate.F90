@@ -15,7 +15,7 @@ SUBROUTINE Read_In_Allocate
         CALL getarg(7, arg); READ (arg, *) mu(1)
         CALL getarg(8, arg); READ (arg, *) mu(2)
         CALL getarg(9, arg); READ (arg, *) muT
-        CALL getarg(10, arg); READ (arg, *) channelType
+        CALL getarg(10, arg); READ (arg, *) channelType !0=toy TI, 1=Bi2Se3, 2=toy metal, 3=TI surface state, 4=1d wire with spin-orbit coupling
         CALL getarg(11, arg); READ (arg, *) contactType !0 = SI, 1 = PBig, 2 = PSmall, 3 = Superconducting
         CALL getarg(12, arg); READ (arg, *) a0
         CALL getarg(13, arg); READ (arg, *) abPhi
@@ -37,7 +37,7 @@ SUBROUTINE Read_In_Allocate
         mu(1) = -1D-1
         mu(2) = 0D0
         muT = 0D0
-        channelType = 4
+        channelType = 0
         contactType = 0 !0
         a0 = 1D0
         disorderStrength = 0D0
@@ -45,7 +45,7 @@ SUBROUTINE Read_In_Allocate
         randSeed = 1
         abPhi = 0D0
         outputfiledir = 'TRDebug/'
-        includePoisson = 1
+        includePoisson = 0
         iteMax = 10
     ENDIF
     IF (channelType == 2) THEN      !one-orbital metal with surface states
@@ -74,16 +74,19 @@ SUBROUTINE Read_In_Allocate
         DeltaSCL = 1D-3
         DeltaSCR = 1D-3
     ENDIF
+    
     IF (abPhi > 1D-10 .AND. (bcy .OR. bcz)) THEN
         WRITE(*,*) "Error - cannot include Aharanov-Bohm phase to periodic structure.  Setting abPhi=0..."
         abPhi=0D0
     ENDIF
     
     !!!!!!!!!!!!!!!!!!!!!!!!!!Other variables to set
-    eStpnum = 400       !number of discretized points in energy space
+    eStpnum = 600       !number of discretized points in energy space
     
     magneticRingWidth = 0         !Creates a magnetic ring of width (magRing) in center of channel to study Topological Magnetoelectric Effect
     magneticDisorderStrength = 0D0
+    
+    isHollowRing = 0    !Flag to insert vacanacies in the bulk to model trivial surface state for AB effect
     
     erCD = 0            !Flag for energy resolved current density
     orCD = 0            !Flag for orbital resolved current densit

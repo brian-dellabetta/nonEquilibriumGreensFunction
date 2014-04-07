@@ -42,12 +42,12 @@ SUBROUTINE MPI_Gather_Iteration
         CALL MPI_BARRIER(MPI_COMM_WORLD, mpierror); CALL MPI_ErrorCheck(mpierror, 3)
 
         !Reduce observables to process mpiroot
-        ALLOCATE(cmat3(Npx, Npy, Npz))
-        cmat3 = RhoN
-        CALL MPI_REDUCE(cmat3, RhoN, Npx*Npy*Npz, MPI_COMPLEX16, MPI_SUM, mpiroot, MPI_COMM_WORLD, mpierror); CALL MPI_ErrorCheck(mpierror, 3)
-        cmat3 = RhoP
-        CALL MPI_REDUCE(cmat3, RhoP, Npx*Npy*Npz, MPI_COMPLEX16, MPI_SUM, mpiroot, MPI_COMM_WORLD, mpierror); CALL MPI_ErrorCheck(mpierror, 3)
-        DEALLOCATE(cmat3)
+        ALLOCATE(rmat3(Npx, Npy, Npz))
+        rmat3 = RhoN
+        CALL MPI_REDUCE(rmat3, RhoN, Npx*Npy*Npz, MPI_DOUBLE_PRECISION, MPI_SUM, mpiroot, MPI_COMM_WORLD, mpierror); CALL MPI_ErrorCheck(mpierror, 3)
+        rmat3 = RhoP
+        CALL MPI_REDUCE(rmat3, RhoP, Npx*Npy*Npz, MPI_DOUBLE_PRECISION, MPI_SUM, mpiroot, MPI_COMM_WORLD, mpierror); CALL MPI_ErrorCheck(mpierror, 3)
+        DEALLOCATE(rmat3)
     ENDIF
 END SUBROUTINE MPI_Gather_Iteration
 
@@ -60,7 +60,7 @@ SUBROUTINE MPI_Gather_Final
     COMPLEX(8), ALLOCATABLE :: cmat1(:), cmat2(:,:), cmat3(:,:,:), cmat4(:,:,:,:)
 
     IF (Nprocs > 1) THEN
-        ALLOCATE(rmat1(Estpnum))
+        ALLOCATE(rmat1(eStpnum))
         rmat1 = EDensity
         CALL MPI_REDUCE(rmat1, EDensity, eStpnum, MPI_DOUBLE_PRECISION, MPI_SUM, mpiroot, MPI_COMM_WORLD, mpierror); CALL MPI_ErrorCheck(mpierror, 3)
         rmat1 = HDensity
@@ -91,7 +91,7 @@ SUBROUTINE MPI_Gather_Final
         DEALLOCATE(rmat3)
         
         IF (ERcd == 1) THEN
-            ALLOCATE(rmat4(Npx,Npy,Npz,Estpnum))
+            ALLOCATE(rmat4(Npx,Npy,Npz,eStpnum))
             rmat4 = ERJx
             CALL MPI_REDUCE(rmat4, ERJx,   Npx*Npy*Npz*eStpnum, MPI_DOUBLE_PRECISION, MPI_SUM, mpiroot, MPI_COMM_WORLD, mpierror); CALL MPI_ErrorCheck(mpierror, 3)
             rmat4 = ERJy
@@ -114,7 +114,7 @@ SUBROUTINE MPI_Gather_Final
             CALL MPI_REDUCE(rmat4(:,:,:,1:Norb), ORRhon, Npx*Npy*Npz*Norb, MPI_DOUBLE_PRECISION, MPI_SUM, mpiroot, MPI_COMM_WORLD, mpierror); CALL MPI_ErrorCheck(mpierror, 3)
             DEALLOCATE(rmat4)
         ENDIF
-        IF (calcSigExp) THEN
+        IF (calcSigExp == 1) THEN
             ALLOCATE(rmat3(Npx, Npy, Npz))
             rmat3 = SigXExp
             CALL MPI_REDUCE(rmat3, SigXExp, Npx*Npy*Npz, MPI_DOUBLE_PRECISION, MPI_SUM, mpiroot, MPI_COMM_WORLD, mpierror); CALL MPI_ErrorCheck(mpierror, 3)

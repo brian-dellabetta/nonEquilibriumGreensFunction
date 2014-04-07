@@ -129,6 +129,19 @@ SUBROUTINE Build_Hamiltonian
         CALL Add_Magnetic_Ring
     ENDIF
     !!!!!!!!!!!Add magnetic ring around surface for topological magneto-electric effect
+    
+    !!!!!!!!!!!Add large, positive chemical potential to the bulk to create hollow ring to study topologically trivial surface state
+    IF (isHollowRing) THEN
+        DO xx = 1, Npx
+            DO yy = 3, Npy-2
+                DO zz = 3, Npz-2
+                    CALL Insert_Vacancy(xx, yy, zz)
+                    !CALL Insert_Impurity(xx, yy, zz, 1D1)
+                ENDDO
+            ENDDO
+        ENDDO
+    ENDIF
+    !!!!!!!!!!!Add large, positive chemical potential to the bulk to create hollow ring to study topologically trivial surface state
 
     DEALLOCATE(HH2d)
     DEALLOCATE(HH1d)
@@ -151,6 +164,23 @@ SUBROUTINE Insert_Impurity(xPos, yPos, zPos, onsitePot)
     ENDIF
 END SUBROUTINE Insert_Impurity
 !!!!!Raise on-site energy of vacancy (DOI 10.1007/s10825-006-0116-4)
+
+
+
+SUBROUTINE Insert_Vacancy(xPos, yPos, zPos)
+    USE NEGF_Module
+    IMPLICIT NONE
+    INTEGER(4)   :: xPos, yPos, zPos, index
+
+    index = (yPos-1)*Norb+(zPos-1)*NN
+    
+    Htotd(index+1:index+Norb, :, xPos) = c0
+    Htotd(:, index+1:index+Norb, xPos) = c0
+    
+    HopX(index+1:index+Norb, :) = c0
+    HopX(:, index+1:index+Norb) = c0
+END SUBROUTINE Insert_Vacancy
+
 
 
 SUBROUTINE Add_AB_Phase

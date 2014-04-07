@@ -11,31 +11,21 @@ SUBROUTINE Contact_Self_Energy
     ALLOCATE(alpha(NNz,NNz));     alpha = c0
     ALLOCATE(beta(NNz,NNz));      beta = c0
     
-    !Self energies from boundaries with contacts, NOT HERMITIAN!
+    !include small imaginary term for smoother MBS/Transmission peaks
+    contactEnergy = cmplx(energy, eta_sigma, 8)
     
+    !Self energies from boundaries with contacts, NOT HERMITIAN!
     IF (contactType == 1) THEN  !Phenomenological, big contact
-        !set to Ef so that MIGS occur at Dirac point
-        contactEnergy = energy - muT
-        
         DO ii = 1, NNz
-            alpha(ii,ii) = (tunnelingRate/2D0)
+            SigmaL(ii,ii) = -ci*tunnelingRate
         ENDDO
-        SigmaL = alpha*( (contactEnergy)-zsqrt(cmplx((contactEnergy)**2D0 - 4D0*(tMet**2D0),0D0,8)) )
         SigmaR = SigmaL
     ELSEIF (contactType == 2) THEN  !Phenomenological, small contact
-        !set to Ef so that MIGS occur at Dirac point
-        contactEnergy = energy - muT
-        
         DO ii = 1, NN
-            alpha(ii,ii) = (tunnelingRate/2D0)
+            SigmaL(ii,ii) = -ci*tunnelingRate
         ENDDO
-        
-        SigmaL = alpha*( (contactEnergy)-zsqrt(cmplx((contactEnergy)**2D0 - 4D0*(tMet**2D0),0D0,8)) )
         SigmaR = SigmaL
     ELSEIF (contactType == 3) THEN  !Superconducting contacts (From Sun et al., Phys. Rev. B 62, 648-660 (2000)). 
-        !include small imaginary term for smoother MBS peaks, smoother critical current IC
-        contactEnergy = cmplx(energy, eta_sigma, 8)
-        
         !From PRB 62, 648 (2000)
         dumVar1 = DeltaSCL**2D0-contactEnergy**2D0
         dumVar1 = zsqrt( cmplx( real(dumVar1), imag(dumVar1), 8) )
