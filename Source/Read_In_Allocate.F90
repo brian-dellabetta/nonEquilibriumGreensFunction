@@ -38,7 +38,7 @@ SUBROUTINE Read_In_Allocate
         mu(2) = 0D0
         muT = 0D0
         channelType = 0
-        contactType = 0 !0
+        contactType = 0
         a0 = 1D0
         disorderStrength = 0D0
         corrLength = 0D0

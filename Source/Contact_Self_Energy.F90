@@ -3,8 +3,9 @@ SUBROUTINE Contact_Self_Energy
     IMPLICIT NONE
     
     COMPLEX(8), DIMENSION(:,:), ALLOCATABLE :: alpha, beta
-    REAL(8)                                 :: contactEnergy, tunnelingRate
-    COMPLEX(8)                              :: BetaEps, dumVar1, dumVar2, malpha, dalpha
+    REAL(8)                                 :: tunnelingRate
+    COMPLEX(8)                              :: contactEnergy, omega, mAlpha, dAlphaU, dalphaL
+    INTEGER                                 :: index
 
     tunnelingRate = 1D0             !phenomenological treatment of contacts (0<rate<=1)
     
@@ -25,34 +26,45 @@ SUBROUTINE Contact_Self_Energy
             SigmaL(ii,ii) = -ci*tunnelingRate
         ENDDO
         SigmaR = SigmaL
-    ELSEIF (contactType == 3) THEN  !Superconducting contacts (From Sun et al., Phys. Rev. B 62, 648-660 (2000)). 
-        !From PRB 62, 648 (2000)
-        dumVar1 = DeltaSCL**2D0-contactEnergy**2D0
-        dumVar1 = zsqrt( cmplx( real(dumVar1), imag(dumVar1), 8) )
+    ELSEIF (contactType == 3) THEN  !!!!!Phenomenological SC contacts
+        !From PRB 62, 648 (2000), also see Eq. 6 PRB 88, 104512 (2013) and Appendix A http://arxiv.org/pdf/0911.2402.pdf
         
-        malpha = -tunnelingRate/2D0 * (contactEnergy/dumVar1)
-        dalpha =  tunnelingRate/2D0 * (DeltaSCL/dumVar1)
+        !!!Left SC Contact
+        omega = c1 / zsqrt(DeltaSCL**2 - contactEnergy**2)
+        
+        mAlpha  = -tunnelingRate * omega * contactEnergy
+        dAlphaU =  tunnelingRate * omega * ( DeltaSCL)
+        dAlphaL =  tunnelingRate * omega * (-DeltaSCL)
         
         !Semi-infinite superconducting contacts, alpha = E*Id - Hsc
-        SigmaL(1:Nh,1:Nh) = malpha*id(1:Nh,1:Nh)
-        SigmaL(Nh+1:Norb,Nh+1:Norb) = malpha*id(1:Nh,1:Nh)
+        SigmaL(1:Nh,1:Nh) = mAlpha*id(1:Nh,1:Nh)
+        SigmaL(Nh+1:Norb,Nh+1:Norb) = mAlpha*id(1:Nh,1:Nh)
         
-        SigmaL(1:Nh,Nh+1:Norb) = dalpha*zexp(cmplx(0D0, chiLR,8))*(gDS)
-        SigmaL(Nh+1:Norb,1:Nh) = conjg(transpose(SigmaL(1:Nh,Nh+1:Norb)))     !dalpha*zexp(cmplx(0D0,-PhiL,8))*(gDA+gDB)
+        SigmaL(1:Nh,Nh+1:Norb) = dAlphaU * (gDS) * zexp( ci*chiLR)
+        SigmaL(Nh+1:Norb,1:Nh) = dAlphaL * (gDS) * zexp(-ci*chiLR)
+        
 
         
-        dumVar1 = DeltaSCR**2D0-contactEnergy**2D0
-        dumVar1 = zsqrt( cmplx( real(dumVar1), imag(dumVar1), 8) )
+        !!!Right SC Contact
+        omega = c1 / zsqrt(DeltaSCL**2 - contactEnergy**2)
         
-        malpha = -tunnelingRate/2D0 * (contactEnergy/dumVar1)
-        dalpha =  tunnelingRate/2D0 * (DeltaSCR/dumVar1)
+        mAlpha  = -tunnelingRate * omega * contactEnergy
+        dAlphaU =  tunnelingRate * omega * ( DeltaSCR)
+        dAlphaL =  tunnelingRate * omega * (-DeltaSCR)
         
-        SigmaR(1:Nh,1:Nh) = malpha*id(1:Nh,1:Nh)
-        SigmaR(Nh+1:Norb,Nh+1:Norb) = malpha*id(1:Nh,1:Nh)
+        SigmaR(1:Nh,1:Nh) = mAlpha*id(1:Nh,1:Nh)
+        SigmaR(Nh+1:Norb,Nh+1:Norb) = mAlpha*id(1:Nh,1:Nh)
         
-        SigmaR(1:Nh,Nh+1:Norb) = dalpha*zexp(cmplx(0D0, 0D0,8))*(gDS)
-        SigmaR(Nh+1:Norb,1:Nh) = conjg(transpose(SigmaR(1:Nh,Nh+1:Norb)))     !dalpha*zexp(cmplx(0D0,-PhiR,8))*(gDA+gDB)
-    
+        SigmaR(1:Nh,Nh+1:Norb) = dAlphaU * (gDS)
+        SigmaR(Nh+1:Norb,1:Nh) = dAlphaL * (gDS)
+        
+        
+        
+        DO ii = 2, Npy*Npz
+            index = (ii-1)*Norb
+            SigmaL(index+1:index+Norb,index+1:index+Norb) = SigmaL(1:Norb,1:Norb)
+            SigmaR(index+1:index+Norb,index+1:index+Norb) = SigmaR(1:Norb,1:Norb)
+        ENDDO
     ELSE                       !Contacts are a semi-infinite extension of the channel
         alpha = c0; beta = c0; errorFlag=0
         
@@ -79,7 +91,7 @@ SUBROUTINE Contact_Self_Energy
         ENDIF
     ENDIF
 
-     DO ii=1,NNz
+    DO ii=1,NNz
         DOSc1(eCtr+1) = DOSc1(eCtr+1)-imag(SigmaL(ii,ii))/pi
         DOSc2(eCtr+1) = DOSc2(eCtr+1)-imag(SigmaR(ii,ii))/pi
     ENDDO
